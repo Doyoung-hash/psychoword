@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>정신병리 영단어 랜덤 시험지</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Psychopathology Vocabulary</p>
+          <h1>정신병리 영단어 랜덤 시험지</h1>
+        </div>
+        <div class="user-switch" aria-label="사용자 선택">
+          <button class="user-button active" data-user="사용자 1" type="button">사용자 1</button>
+          <button class="user-button" data-user="사용자 2" type="button">사용자 2</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="summary-band" aria-label="학습 현황">
+          <div>
+            <span class="summary-label">전체 단어</span>
+            <strong id="totalWords">-</strong>
+          </div>
+          <div>
+            <span class="summary-label">50개 단위 세트</span>
+            <strong id="totalSets">-</strong>
+          </div>
+          <div>
+            <span class="summary-label">현재 사용자 기록</span>
+            <strong id="historyCount">-</strong>
+          </div>
+        </section>
+
+        <nav class="tabs" aria-label="페이지 이동">
+          <button class="tab active" data-view="sets" type="button">세트 목록</button>
+          <button class="tab" data-view="quiz" type="button">시험 보기</button>
+          <button class="tab" data-view="history" type="button">기록 보관함</button>
+        </nav>
+
+        <section id="setsView" class="view active">
+          <div class="section-heading">
+            <div>
+              <h2>50개씩 정리된 단어 세트</h2>
+              <p>각 세트에서 20문항을 랜덤으로 뽑아 시험을 시작할 수 있어요.</p>
+            </div>
+            <input id="searchInput" class="search-input" type="search" placeholder="단어 또는 뜻 검색" />
+          </div>
+          <div id="setGrid" class="set-grid"></div>
+        </section>
+
+        <section id="detailView" class="view">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow" id="detailRange">-</p>
+              <h2 id="detailTitle">세트 상세</h2>
+            </div>
+            <div class="action-row">
+              <button id="backToSets" class="ghost-button" type="button">세트 목록</button>
+              <button id="startFromDetail" class="primary-button" type="button">이 세트 시험 시작</button>
+            </div>
+          </div>
+          <div id="wordTable" class="word-table"></div>
+        </section>
+
+        <section id="quizView" class="view">
+          <div class="quiz-toolbar">
+            <div>
+              <p class="eyebrow">Random 20 Questions</p>
+              <h2 id="quizTitle">시험 준비</h2>
+            </div>
+            <div class="quiz-controls">
+              <label>
+                세트
+                <select id="setSelect"></select>
+              </label>
+              <label>
+                방식
+                <select id="modeSelect">
+                  <option value="word-to-meaning">영어 보고 뜻 쓰기</option>
+                  <option value="meaning-to-word">뜻 보고 영어 쓰기</option>
+                </select>
+              </label>
+              <button id="newQuiz" class="primary-button" type="button">새 시험지</button>
+            </div>
+          </div>
+
+          <div id="quizIntro" class="empty-state">
+            세트를 고르고 새 시험지를 누르면 20문항이 랜덤으로 만들어져요.
+          </div>
+          <form id="quizForm" class="quiz-form hidden"></form>
+          <div class="submit-row hidden" id="submitRow">
+            <button id="submitQuiz" class="primary-button" type="button">채점하고 저장</button>
+          </div>
+          <div id="resultPanel" class="result-panel hidden"></div>
+        </section>
+
+        <section id="historyView" class="view">
+          <div class="section-heading">
+            <div>
+              <h2>기록 보관함</h2>
+              <p>현재 선택된 사용자의 시험 결과가 이 브라우저에 저장됩니다.</p>
+            </div>
+            <button id="clearHistory" class="danger-button" type="button">현재 사용자 기록 삭제</button>
+          </div>
+          <div id="historyList" class="history-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="data/words.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
