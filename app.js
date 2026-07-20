@@ -274,7 +274,7 @@ function renderHistory() {
   }
 
   els.historyList.innerHTML = history
-    .map((record) => {
+    .map((record, historyIndex) => {
       const wrong = record.answers.filter((item) => !item.correct);
       const correctCount = record.total - wrong.length;
       const date = new Date(record.createdAt).toLocaleString("ko-KR", {
@@ -285,6 +285,7 @@ function renderHistory() {
       return `
         <article class="history-card">
           <button class="history-summary" type="button" data-toggle="${record.id}">
+            <span class="history-number">${historyIndex + 1}</span>
             <div>
               <h3>${date}</h3>
               <p>${record.setNumber}세트 · ${modeLabel}</p>
