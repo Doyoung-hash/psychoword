@@ -198,14 +198,21 @@ function startQuiz(setNumber) {
       const prompt = state.currentMode === "word-to-meaning" ? item.word : item.meaning;
       const hint = state.currentMode === "word-to-meaning" ? item.pronunciation : "영어 단어를 입력";
       return `
-        <label class="question-card">
+        <section class="question-card">
           <span class="question-number">${index + 1}</span>
-          <span>
-            <span class="prompt">${escapeHtml(prompt)}</span>
-            <span class="pronunciation">${escapeHtml(hint || "")}</span>
-            <input class="answer-input" name="answer-${item.id}" autocomplete="off" />
-          </span>
-        </label>
+          <div class="question-body">
+            <div class="prompt">${escapeHtml(prompt)}</div>
+            <div class="pronunciation">${escapeHtml(hint || "")}</div>
+            <label class="field-label">
+              답
+              <input class="answer-input" name="answer-${item.id}" autocomplete="off" />
+            </label>
+            <label class="field-label note-label">
+              노트
+              <textarea class="note-input" name="note-${item.id}" rows="2"></textarea>
+            </label>
+          </div>
+        </section>
       `;
     })
     .join("");
@@ -217,10 +224,12 @@ function gradeQuiz() {
   if (!state.currentQuiz.length) return;
   const answers = state.currentQuiz.map((item) => {
     const input = els.quizForm.querySelector(`[name="answer-${item.id}"]`);
+    const noteInput = els.quizForm.querySelector(`[name="note-${item.id}"]`);
     const userAnswer = input.value.trim();
+    const note = noteInput.value.trim();
     const correctAnswer = state.currentMode === "word-to-meaning" ? item.meaning : item.word;
     const correct = isCorrect(userAnswer, correctAnswer, state.currentMode === "word-to-meaning");
-    return { ...item, userAnswer, correctAnswer, correct };
+    return { ...item, userAnswer, note, correctAnswer, correct };
   });
   const score = answers.filter((item) => item.correct).length;
   const record = {
@@ -257,6 +266,7 @@ function renderResult(record) {
               <strong>${index + 1}. ${escapeHtml(item.word)}</strong>
               <p>정답: ${escapeHtml(item.correctAnswer || "-")}</p>
               <p>내 답: ${escapeHtml(item.userAnswer || "(빈칸)")}</p>
+              ${item.note ? `<p>노트: ${escapeHtml(item.note)}</p>` : ""}
             </div>
           `,
         )
@@ -308,6 +318,7 @@ function renderHistory() {
                       <strong>${index + 1}. ${escapeHtml(item.word)}</strong>
                       <p>정답: ${escapeHtml(item.correctAnswer || "-")}</p>
                       <p>내 답: ${escapeHtml(item.userAnswer || "(빈칸)")}</p>
+                      ${item.note ? `<p>노트: ${escapeHtml(item.note)}</p>` : ""}
                     </div>
                   `,
                 )
