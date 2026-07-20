@@ -276,6 +276,7 @@ function renderHistory() {
   els.historyList.innerHTML = history
     .map((record) => {
       const wrong = record.answers.filter((item) => !item.correct);
+      const correctCount = record.total - wrong.length;
       const date = new Date(record.createdAt).toLocaleString("ko-KR", {
         dateStyle: "medium",
         timeStyle: "short",
@@ -283,24 +284,46 @@ function renderHistory() {
       const modeLabel = record.mode === "word-to-meaning" ? "영어→뜻" : "뜻→영어";
       return `
         <article class="history-card">
-          <div class="history-top">
+          <button class="history-summary" type="button" data-toggle="${record.id}">
             <div>
-              <h3>${record.setNumber}세트 · ${record.score}/${record.total}</h3>
-              <p>${date} · ${modeLabel}</p>
+              <h3>${date}</h3>
+              <p>${record.setNumber}세트 · ${modeLabel}</p>
             </div>
-            <button class="ghost-button" type="button" data-review="${record.id}">다시 보기</button>
-          </div>
-          <div class="pill-row">
-            <span class="pill">오답 ${wrong.length}개</span>
-            ${wrong
-              .slice(0, 5)
-              .map((item) => `<span class="pill">${escapeHtml(item.word)}</span>`)
-              .join("")}
+            <div class="history-score">
+              <strong>맞음 ${correctCount}</strong>
+              <span>틀림 ${wrong.length}</span>
+            </div>
+          </button>
+          <div class="history-detail hidden" data-detail-panel="${record.id}">
+            <div class="history-actions">
+              <button class="ghost-button" type="button" data-review="${record.id}">결과 화면으로 보기</button>
+              <button class="danger-button" type="button" data-delete="${record.id}">이 기록 삭제</button>
+            </div>
+            <div class="review-list compact">
+              ${record.answers
+                .map(
+                  (item, index) => `
+                    <div class="review-item ${item.correct ? "" : "wrong"}">
+                      <strong>${index + 1}. ${escapeHtml(item.word)}</strong>
+                      <p>정답: ${escapeHtml(item.correctAnswer || "-")}</p>
+                      <p>내 답: ${escapeHtml(item.userAnswer || "(빈칸)")}</p>
+                    </div>
+                  `,
+                )
+                .join("")}
+            </div>
           </div>
         </article>
       `;
     })
     .join("");
+
+  els.historyList.querySelectorAll("[data-toggle]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const panel = els.historyList.querySelector(`[data-detail-panel="${button.dataset.toggle}"]`);
+      if (panel) panel.classList.toggle("hidden");
+    });
+  });
 
   els.historyList.querySelectorAll("[data-review]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -310,6 +333,10 @@ function renderHistory() {
         showView("quiz");
       }
     });
+  });
+
+  els.historyList.querySelectorAll("[data-delete]").forEach((button) => {
+    button.addEventListener("click", () => deleteHistoryRecord(button.dataset.delete));
   });
 }
 
@@ -329,6 +356,21 @@ function clearCurrentHistory() {
   const ok = confirm(`${state.currentUser}의 시험 기록을 모두 삭제할까요?`);
   if (!ok) return;
   localStorage.removeItem(historyKey());
+  renderHistory();
+  renderSummary();
+}
+
+function deleteHistoryRecord(recordId) {
+  const history = getHistory();
+  const record = history.find((item) => item.id === recordId);
+  if (!record) return;
+  const date = new Date(record.createdAt).toLocaleString("ko-KR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+  const ok = confirm(`${date} 기록을 삭제할까요?`);
+  if (!ok) return;
+  localStorage.setItem(historyKey(), JSON.stringify(history.filter((item) => item.id !== recordId)));
   renderHistory();
   renderSummary();
 }
