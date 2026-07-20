@@ -264,39 +264,8 @@ function renderHistory() {
     return;
   }
 
-  els.historyList.innerHTML = history
-    .map((record, historyIndex) => {
-      const wrong = record.answers.filter((item) => !item.correct);
-      const correctCount = record.total - wrong.length;
-      const date = new Date(record.createdAt).toLocaleString("ko-KR", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      });
-      const modeLabel = record.mode === "word-to-meaning" ? "영어→뜻" : "뜻→영어";
-      return `
-        <article class="history-card">
-          <button class="history-summary" type="button" data-toggle="${record.id}">
-            <span class="history-number">${historyIndex + 1}</span>
-            <div>
-              <h3>${date}</h3>
-              <p>${record.setNumber}세트 · ${modeLabel}</p>
-            </div>
-            <div class="history-score">
-              <strong>맞음 ${correctCount}</strong>
-              <span>틀림 ${wrong.length}</span>
-            </div>
-          </button>
-          <div class="history-detail hidden" data-detail-panel="${record.id}">
-            <div class="history-actions">
-              <button class="ghost-button" type="button" data-review="${record.id}">결과 화면으로 보기</button>
-              <button class="danger-button" type="button" data-delete="${record.id}">이 기록 삭제</button>
-            </div>
-            ${renderReviewCards(record.answers, "compact")}
-          </div>
-        </article>
-      `;
-    })
-    .join("");
+  const groupedHistory = groupHistoryBySet(history);
+  els.historyList.innerHTML = groupedHistory.map(renderHistoryGroup).join("");
 
   els.historyList.querySelectorAll("[data-toggle]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -318,6 +287,75 @@ function renderHistory() {
   els.historyList.querySelectorAll("[data-delete]").forEach((button) => {
     button.addEventListener("click", () => deleteHistoryRecord(button.dataset.delete));
   });
+}
+
+function groupHistoryBySet(history) {
+  const groups = new Map();
+  history.forEach((record) => {
+    if (!groups.has(record.setNumber)) groups.set(record.setNumber, []);
+    groups.get(record.setNumber).push(record);
+  });
+  return [...groups.entries()]
+    .sort(([setA], [setB]) => setA - setB)
+    .map(([setNumber, records]) => ({ setNumber, records }));
+}
+
+function renderHistoryGroup(group) {
+  const attempts = group.records.length;
+  const averageRatio =
+    group.records.reduce((sum, record) => sum + record.score / record.total, 0) / attempts;
+  const average = Math.round(averageRatio * 100);
+  const best = Math.max(...group.records.map((record) => record.score));
+  return `
+    <section class="history-group">
+      <div class="history-group-head">
+        <div>
+          <p class="eyebrow">Set ${group.setNumber}</p>
+          <h3>${group.setNumber}세트</h3>
+        </div>
+        <div class="history-group-stats">
+          <span>응시 ${attempts}회</span>
+          <span>평균 ${average}점</span>
+          <span>최고 ${best}/20</span>
+        </div>
+      </div>
+      <div class="history-record-grid">
+        ${group.records.map((record, index) => renderHistoryCard(record, index)).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderHistoryCard(record, recordIndex) {
+  const wrong = record.answers.filter((item) => !item.correct);
+  const correctCount = record.total - wrong.length;
+  const date = new Date(record.createdAt).toLocaleString("ko-KR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+  const modeLabel = record.mode === "word-to-meaning" ? "영어→뜻" : "뜻→영어";
+  return `
+    <article class="history-card">
+      <button class="history-summary" type="button" data-toggle="${record.id}">
+        <span class="history-number">${recordIndex + 1}</span>
+        <div>
+          <h3>${date}</h3>
+          <p>${modeLabel}</p>
+        </div>
+        <div class="history-score">
+          <strong>맞음 ${correctCount}</strong>
+          <span>틀림 ${wrong.length}</span>
+        </div>
+      </button>
+      <div class="history-detail hidden" data-detail-panel="${record.id}">
+        <div class="history-actions">
+          <button class="ghost-button" type="button" data-review="${record.id}">결과 화면으로 보기</button>
+          <button class="danger-button" type="button" data-delete="${record.id}">이 기록 삭제</button>
+        </div>
+        ${renderReviewCards(record.answers, "compact")}
+      </div>
+    </article>
+  `;
 }
 
 function renderReviewCards(answers, extraClass = "") {
