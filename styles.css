@@ -331,7 +331,7 @@ select {
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr);
   gap: 10px;
-  min-height: 250px;
+  min-height: 176px;
   padding: 14px;
   background:
     repeating-linear-gradient(
@@ -374,24 +374,14 @@ select {
   font-weight: 800;
 }
 
-.answer-input,
-.note-input {
+.answer-input {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.88);
   color: var(--text);
-}
-
-.answer-input {
   min-height: 38px;
   padding: 0 10px;
-}
-
-.note-input {
-  min-height: 60px;
-  padding: 9px 10px;
-  resize: vertical;
 }
 
 .submit-row {
