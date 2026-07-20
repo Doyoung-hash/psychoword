@@ -252,19 +252,7 @@ function renderResult(record) {
       </div>
       <strong>${record.score}/${record.total}</strong>
     </div>
-    <div class="review-list">
-      ${record.answers
-        .map(
-          (item, index) => `
-            <div class="review-item ${item.correct ? "" : "wrong"}">
-              <strong>${index + 1}. ${escapeHtml(item.word)}</strong>
-              <p>정답: ${escapeHtml(item.correctAnswer || "-")}</p>
-              <p>내 답: ${escapeHtml(item.userAnswer || "(빈칸)")}</p>
-            </div>
-          `,
-        )
-        .join("")}
-    </div>
+    ${renderReviewCards(record.answers)}
   `;
   renderHistory();
 }
@@ -303,19 +291,7 @@ function renderHistory() {
               <button class="ghost-button" type="button" data-review="${record.id}">결과 화면으로 보기</button>
               <button class="danger-button" type="button" data-delete="${record.id}">이 기록 삭제</button>
             </div>
-            <div class="review-list compact">
-              ${record.answers
-                .map(
-                  (item, index) => `
-                    <div class="review-item ${item.correct ? "" : "wrong"}">
-                      <strong>${index + 1}. ${escapeHtml(item.word)}</strong>
-                      <p>정답: ${escapeHtml(item.correctAnswer || "-")}</p>
-                      <p>내 답: ${escapeHtml(item.userAnswer || "(빈칸)")}</p>
-                    </div>
-                  `,
-                )
-                .join("")}
-            </div>
+            ${renderReviewCards(record.answers, "compact")}
           </div>
         </article>
       `;
@@ -342,6 +318,35 @@ function renderHistory() {
   els.historyList.querySelectorAll("[data-delete]").forEach((button) => {
     button.addEventListener("click", () => deleteHistoryRecord(button.dataset.delete));
   });
+}
+
+function renderReviewCards(answers, extraClass = "") {
+  return `
+    <div class="review-list ${extraClass}">
+      ${answers
+        .map(
+          (item, index) => `
+            <article class="review-item ${item.correct ? "correct" : "wrong"}">
+              <div class="review-head">
+                <span class="question-number">${index + 1}</span>
+                <strong>${escapeHtml(item.word)}</strong>
+              </div>
+              <dl class="review-pairs">
+                <div>
+                  <dt>정답</dt>
+                  <dd>${escapeHtml(item.correctAnswer || "-")}</dd>
+                </div>
+                <div>
+                  <dt>내 답</dt>
+                  <dd>${escapeHtml(item.userAnswer || "(빈칸)")}</dd>
+                </div>
+              </dl>
+            </article>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
 }
 
 function getHistory() {
