@@ -219,7 +219,7 @@ function gradeQuiz() {
     const input = els.quizForm.querySelector(`[name="answer-${item.id}"]`);
     const userAnswer = input.value.trim();
     const correctAnswer = state.currentMode === "word-to-meaning" ? item.meaning : item.word;
-    const correct = isCorrect(userAnswer, correctAnswer);
+    const correct = isCorrect(userAnswer, correctAnswer, state.currentMode === "word-to-meaning");
     return { ...item, userAnswer, correctAnswer, correct };
   });
   const score = answers.filter((item) => item.correct).length;
@@ -355,20 +355,34 @@ function shuffle(items) {
 function normalize(value) {
   return String(value || "")
     .toLowerCase()
+    .replace(/[0-9]+[.)]/g, "")
+    .replace(/[①②③④⑤⑥⑦⑧⑨⑩]/g, "")
     .replace(/\s+/g, "")
     .trim();
 }
 
-function isCorrect(userAnswer, correctAnswer) {
+function isCorrect(userAnswer, correctAnswer, allowUnorderedTerms = false) {
   if (!userAnswer) return false;
   const normalizedUser = normalize(userAnswer);
   const normalizedCorrect = normalize(correctAnswer);
   if (normalizedUser === normalizedCorrect) return true;
-  return normalizedCorrect
-    .split(/[;,/·()]+/)
+  if (!allowUnorderedTerms) return false;
+  const correctHasListDelimiter = /[0-9]+[.)]|[①②③④⑤⑥⑦⑧⑨⑩]|[,;\n/·]/.test(correctAnswer);
+  const userTerms = splitAnswerTerms(userAnswer, correctHasListDelimiter);
+  const correctTerms = splitAnswerTerms(correctAnswer, correctHasListDelimiter);
+  if (!userTerms.length || !correctTerms.length) return false;
+  if (userTerms.length === 1) return correctTerms.includes(userTerms[0]);
+  return userTerms.every((term) => correctTerms.includes(term));
+}
+
+function splitAnswerTerms(value, splitSpaces = false) {
+  const separators = splitSpaces ? /[,\n;\/·]+|\s+|(?:랑|와|과|및)/ : /[,\n;\/·]+|\s{2,}/;
+  return String(value || "")
+    .replace(/[0-9]+[.)]/g, "")
+    .replace(/[①②③④⑤⑥⑦⑧⑨⑩]/g, "")
+    .split(separators)
     .map(normalize)
-    .filter(Boolean)
-    .includes(normalizedUser);
+    .filter(Boolean);
 }
 
 function escapeHtml(value) {
